@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  big-agi:
+    image: ghcr.io/enricoros/big-agi:latest
+    container_name: big-agi
+    ports:
+      - '3002:3000'
+    environment:
+      - BIG_AGI_OLLAMA_API_HOST=http://localhost:11434
+    restart: always
