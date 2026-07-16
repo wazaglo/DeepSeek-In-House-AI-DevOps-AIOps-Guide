@@ -1,0 +1,7 @@
+*.tmp
+*.log
+__pycache__/
+*.py[cod]
+.env
+node_modules/
+monitoring/metrics/
