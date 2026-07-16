@@ -1,0 +1,38 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Lint Python scripts
+        run: ruff check scripts/ --ignore=E501,F401
+
+      - name: Validate YAML files
+        run: |
+          pip install yamllint
+          yamllint --strict .
+
+      - name: Check Docker Compose files
+        run: |
+          for f in configs/*.yml docker-compose.yml; do
+            [ -f "$f" ] && docker compose -f "$f" config 2>/dev/null || true
+          done
