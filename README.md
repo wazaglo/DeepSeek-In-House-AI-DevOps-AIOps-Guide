@@ -1,4 +1,4 @@
-# DeepSeek In-House AI — DevOps & AIOps Guide
+# DeepSeek In-House AI: DevOps & AIOps Guide
 
 [![CI](https://github.com/wazaglo/DeepSeek-In-House-AI-DevOps-AIOps-Guide/actions/workflows/ci.yml/badge.svg)](https://github.com/wazaglo/DeepSeek-In-House-AI-DevOps-AIOps-Guide/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -11,11 +11,11 @@ A private, self-hosted DeepSeek AI environment with real-time AIOps monitoring, 
 
 ## Features
 
-- **Private & Free** — Self-hosted on your infrastructure. Zero API costs.
-- **AIOps Integration** — AI-driven system health predictions in Grafana
-- **Multi-Interface** — Choose the right UI for the task: chat, dev, or lightweight
-- **Monitoring Stack** — Prometheus + Grafana + Node Exporter + cAdvisor
-- **Extensible** — Easily add new models and monitoring collectors
+- **Private & Free**: Self-hosted on your infrastructure. Zero API costs.
+- **AIOps Integration**: AI-driven system health predictions in Grafana
+- **Multi-Interface**: Choose the right UI for the task: chat, dev, or lightweight
+- **Monitoring Stack**: Prometheus + Grafana + Node Exporter + cAdvisor
+- **Extensible**: Easily add new models and monitoring collectors
 
 ---
 
