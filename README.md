@@ -5,7 +5,7 @@
 [![Ollama](https://img.shields.io/badge/Ollama-000?logo=ollama&logoColor=white)](https://ollama.ai/)
 [![DeepSeek](https://img.shields.io/badge/DeepSeek-4A6CF7?logo=deepseek&logoColor=white)](https://deepseek.com/)
 
-A private, self-hosted DeepSeek AI environment with real-time AIOps monitoring, multiple web interfaces, and DevOps-focused tooling. No API costs, no data leaving your server.
+A private, self-hosted DeepSeek AI environment with real-time AIOps monitoring, multiple web interfaces, and DevOps-focused tooling. No API costs. NOdata leaving your server.
 
 ---
 
