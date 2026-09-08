@@ -1,0 +1,2 @@
+requests>=2.31
+prometheus-api-client>=0.5.4
