@@ -18,38 +18,62 @@ system metrics into an AI-assessed risk score.
 
 ## Architecture
 
-```
-┌───────────────────────────────────────────────┐
-│                Ollama Server                  │
-│           deepseek-coder:1.3b / 6.7b          │
-└───────────────────────▲───────────────────────┘
-                        │  upstream (127.0.0.1:11434)
-┌───────────────────────┴───────────────────────┐
-│        AI Gateway  :11435  (gateway/)         │
-│  API-key auth · audit JSONL · /metrics        │
-└───┬───────────┬───────────┬───────────────────┘
-    │           │           │
-    ▼           ▼           ▼
-┌──────────┐ ┌──────────┐ ┌──────────┐
-│ Chatbot  │ │ NextChat │ │ Big-AGI  │   + any API client
-│  :3000   │ │  :3001   │ │  :3002   │   (Bearer / X-API-Key)
-└──────────┘ └──────────┘ └──────────┘
+### Request path — everything flows through the auditing gateway
 
-   ┌──────────────────────────────────────────┐
-   │           AI Monitor (aiops/)            │
-   │   Prometheus → Ollama → risk gauge       │
-   └────────────────────┬─────────────────────┘
-                        ▼
-   ┌──────────────────────────────────────────┐
-   │            Monitoring Stack              │
-   │  Prometheus  :9090   Grafana     :4000   │
-   │  Loki        :3100   Alloy (logs)        │
-   │  node-exporter :9100 (+ textfile)        │
-   │  cAdvisor    :8082                       │
-   │                                          │
-   │  audit JSONL → Alloy → Loki → Grafana    │
-   │  gateway /metrics → Prometheus → Grafana │
-   └──────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph clients["Clients"]
+        CB["Chatbot Ollama<br/>:3000"]
+        NC["NextChat<br/>:3001"]
+        BA["Big-AGI<br/>:3002"]
+        API["Any API client<br/>Bearer / X-API-Key / ?key="]
+    end
+
+    GW["<b>AI Gateway :11435</b> (gateway/)<br/>API-key auth · audit JSONL · /metrics"]
+    OLLAMA["<b>Ollama Server :11434</b><br/>deepseek-coder:1.3b / 6.7b"]
+
+    CB -->|key: ui-chatbot| GW
+    NC -->|key: ui-nextchat| GW
+    BA -->|key: ui-bigagi| GW
+    API -->|user key| GW
+    GW -->|"upstream 127.0.0.1:11434"| OLLAMA
+
+    AIOPS["AI Monitor (aiops/)<br/>Prometheus → Ollama → risk gauge"]
+    AIOPS -->|"direct (deliberate:<br/>avoids audit feedback loop)"| OLLAMA
+
+    style GW fill:#1f6feb,stroke:#0d419d,color:#fff
+    style OLLAMA fill:#343a46,stroke:#242a38,color:#fff
+```
+
+### Observability pipelines — metrics & audit logs into Grafana
+
+```mermaid
+flowchart LR
+    subgraph sources["Sources"]
+        GWM["gateway /metrics"]
+        AJ["monitoring/logs/<br/>gateway_audit.jsonl"]
+        NE["node-exporter :9100<br/>+ textfile (risk gauge)"]
+        CV["cAdvisor :8082"]
+    end
+
+    subgraph stack["Monitoring stack (monitoring/)"]
+        direction TB
+        PROM["Prometheus :9090"]
+        ALLOY["Alloy<br/>tail → JSON parse → label"]
+        LOKI["Loki :3100<br/>30-day retention"]
+        GRAF["Grafana :4000<br/>AI Activity dashboard"]
+    end
+
+    GWM -->|scrape ai-gateway job| PROM
+    NE --> PROM
+    CV --> PROM
+    AJ -->|tail| ALLOY --> LOKI
+    PROM --> GRAF
+    LOKI --> GRAF
+
+    style GRAF fill:#e87b20,stroke:#b85e14,color:#fff
+    style PROM fill:#e6522c,stroke:#b53d1f,color:#fff
+    style LOKI fill:#f2a436,stroke:#c07f1e,color:#000
 ```
 
 ## Prerequisites
