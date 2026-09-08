@@ -93,12 +93,27 @@ tail -f ai_monitor.log
 
 ---
 
-🔄 **Infrastructure as Code**
-The `configs/` directory contains Docker Compose files for:
-- `prometheus.yml`: Monitoring configuration.
-- `ui-big-agi.yml`: Professional UI deployment.
-- `ui-nextchat.yml`: ChatGPT-style UI deployment.
-- `ui-chatbot-ollama.yml`: Lightweight UI deployment.
+🔄 **Repository Layout**
+```
+aiops/                  AIOps bridge
+  ai_monitor.py           Reads metrics → asks AI → writes risk gauge
+  requirements.txt        Python deps (pip install -r aiops/requirements.txt)
+monitoring/             Observability stack
+  docker-compose.yml      Prometheus, Grafana, node-exporter, cAdvisor
+  prometheus.yml          Scrape config (node, cadvisor, self)
+  metrics/                Textfile dir: ai_prediction.prom is scraped from here
+uis/
+  docker-compose.yml      All three chat UIs (ports 3000/3001/3002)
+docs/
+  CHANGES-2026-09-08.md   Full change log & server setup record
+```
+
+Start the stacks:
+```bash
+docker compose -f monitoring/docker-compose.yml up -d   # Prometheus/Grafana/metrics
+docker compose -f uis/docker-compose.yml up -d          # Chat UIs
+python3 aiops/ai_monitor.py                              # AIOps bridge
+```
 
 🎉 **You're Ready!**
 Your DeepSeek AI is now a core part of your DevOps infrastructure. Private, free, and monitored.

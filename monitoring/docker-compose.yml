@@ -17,7 +17,7 @@ services:
     command:
       - '--collector.textfile.directory=/textfile'
     volumes:
-      - ../monitoring/metrics:/textfile:ro
+      - ./metrics:/textfile:ro
     ports: ['9100:9100']
     restart: always
   cadvisor:

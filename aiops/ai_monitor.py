@@ -6,10 +6,12 @@ import requests
 from prometheus_api_client import PrometheusConnect
 
 # Configuration
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROM_URL = os.environ.get('PROM_URL', 'http://localhost:9090')
 OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://localhost:11434/api/generate')
 MODEL = os.environ.get('DEEPSEEK_MODEL', 'deepseek-coder:1.3b')
-METRIC_FILE = os.environ.get('METRIC_FILE', 'monitoring/metrics/ai_prediction.prom')
+METRIC_FILE = os.environ.get(
+    'METRIC_FILE', os.path.join(REPO_ROOT, 'monitoring', 'metrics', 'ai_prediction.prom'))
 
 pc = PrometheusConnect(url=PROM_URL, disable_ssl=True)
 

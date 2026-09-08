@@ -1,5 +1,6 @@
 *.tmp
 *.log
 .env
-monitoring/metrics/
+monitoring/metrics/*
+!monitoring/metrics/.gitkeep
 __pycache__/
