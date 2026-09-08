@@ -1,6 +1,8 @@
 *.tmp
 *.log
+*.py[cod]
+__pycache__/
 .env
+node_modules/
 monitoring/metrics/*
 !monitoring/metrics/.gitkeep
-__pycache__/

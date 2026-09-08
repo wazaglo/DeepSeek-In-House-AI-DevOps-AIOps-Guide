@@ -1,5 +1,9 @@
 # DeepSeek In-House AI — DevOps & AIOps Guide
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Ollama](https://img.shields.io/badge/Ollama-000?logo=ollama&logoColor=white)](https://ollama.ai/)
+[![DeepSeek](https://img.shields.io/badge/DeepSeek-4A6CF7?logo=deepseek&logoColor=white)](https://deepseek.com/)
+
 A private, self-hosted DeepSeek AI environment: local LLM inference via
 [Ollama](https://ollama.com), three chat interfaces, a Prometheus/Grafana
 observability stack, and an AIOps bridge that turns system metrics into an
@@ -10,6 +14,34 @@ AI-assessed risk score.
 - **Multi-interface** — lightweight chat (3000), ChatGPT-style sessions
   (3001), and a professional workspace (3002).
 
+## Architecture
+
+```
+┌───────────────────────────────────────────────┐
+│                Ollama Server                  │
+│           deepseek-coder:1.3b / 6.7b          │
+└────────┬────────────┬────────────┬────────────┘
+         │            │            │
+         ▼            ▼            ▼
+   ┌──────────┐ ┌──────────┐ ┌──────────┐
+   │ Chatbot  │ │ NextChat │ │ Big-AGI  │
+   │  :3000   │ │  :3001   │ │  :3002   │
+   └──────────┘ └──────────┘ └──────────┘
+
+   ┌──────────────────────────────────────────┐
+   │           AI Monitor (aiops/)            │
+   │   Prometheus → Ollama → risk gauge       │
+   └────────────────────┬─────────────────────┘
+                        ▼
+   ┌──────────────────────────────────────────┐
+   │            Monitoring Stack              │
+   │  Prometheus  :9090                       │
+   │  Grafana     :4000                       │
+   │  node-exporter :9100 (+ textfile)        │
+   │  cAdvisor    :8082                       │
+   └──────────────────────────────────────────┘
+```
+
 ## Prerequisites
 
 | Requirement | Used for |
@@ -18,6 +50,8 @@ AI-assessed risk score.
 | Docker + Docker Compose | Monitoring stack and web UIs |
 | Python 3.10+ | AIOps bridge (`aiops/ai_monitor.py`) |
 | Node.js 18+ (optional) | Local CLI tools |
+
+4 GB+ RAM minimum; 8 GB recommended if you also run `deepseek-coder:6.7b`.
 
 ## Quickstart
 
@@ -144,3 +178,7 @@ This setup binds Ollama to all interfaces with `OLLAMA_ORIGINS=*` and exposes
 Grafana, Prometheus, and cAdvisor directly. That is acceptable on a trusted
 home LAN only. On any shared network, firewall the ports and restrict
 `OLLAMA_ORIGINS` to your UI origins.
+
+## License
+
+[MIT](LICENSE)
