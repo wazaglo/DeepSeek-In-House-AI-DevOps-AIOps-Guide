@@ -105,6 +105,11 @@ Key service settings (set in the unit file):
 
 ### 2. AI gateway (audit layer)
 
+> **Deployment target:** the live audit stack runs on the private AI server
+> (`<server-ip>`, hostname `prisonbreak`, repo at `~/deepseek-inhouse`).
+> `gateway/ollama-gateway.service` ships with the dev-machine path; adjust
+> `ExecStart=`/`WorkingDirectory=` (and `Group=`) when installing elsewhere.
+
 The gateway (`gateway/app.py`, stdlib-only) sits in front of Ollama on
 `:11435`. Every request must carry an API key from `gateway/users.json`;
 each call is audited (user, team, model, prompt, response, duration, status,
@@ -162,6 +167,12 @@ docker compose -f monitoring/docker-compose.yml up -d
 | 3100 | Loki (searchable audit-log store, 30-day retention) |
 | 9100 | node-exporter (host metrics + textfile collector) |
 | 8082 | cAdvisor (container metrics) |
+
+> On the deployment server (`<server-ip>`) this repo's monitoring compose is
+> **not** used; instead
+> Alloy was added to the server's existing `~/monitoring-stack` compose
+> (Grafana there is on `:3000`, Loki `:3100`, Prometheus `:9090`, and Alloy
+> tails `~/deepseek-inhouse/monitoring/logs/`).
 
 Grafana ships with Prometheus + Loki datasources and the **AI Activity —
 Ollama Gateway Audit** dashboard (requests by user/model, error rate, p50/p95
