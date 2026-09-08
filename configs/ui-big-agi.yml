@@ -6,5 +6,7 @@ services:
     ports:
       - '3002:3000'
     environment:
-      - BIG_AGI_OLLAMA_API_HOST=http://localhost:11434
+      - BIG_AGI_OLLAMA_API_HOST=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: always

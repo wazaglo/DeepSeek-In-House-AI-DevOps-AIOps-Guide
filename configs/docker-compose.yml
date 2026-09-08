@@ -1,5 +1,30 @@
 services:
-  prometheus: { image: prom/prometheus:latest, ports: ['9090:9090'] }
-  grafana: { image: grafana/grafana:latest, ports: ['4000:3000'] }
-  node-exporter: { image: prom/node-exporter:latest, ports: ['9100:9100'] }
-  cadvisor: { image: gcr.io/cadvisor/cadvisor:latest, ports: ['8082:8080'] }
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports: ['9090:9090']
+    restart: always
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports: ['4000:3000']
+    restart: always
+  node-exporter:
+    image: prom/node-exporter:latest
+    command:
+      - '--collector.textfile.directory=/textfile'
+    volumes:
+      - ../monitoring/metrics:/textfile:ro
+    ports: ['9100:9100']
+    restart: always
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports: ['8082:8080']
+    restart: always
+
+volumes:
+  prometheus-data:
+  grafana-data:

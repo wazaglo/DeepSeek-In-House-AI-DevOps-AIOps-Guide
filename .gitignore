@@ -1,0 +1,5 @@
+*.tmp
+*.log
+.env
+monitoring/metrics/
+__pycache__/

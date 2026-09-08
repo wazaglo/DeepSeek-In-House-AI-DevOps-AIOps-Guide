@@ -1,14 +1,15 @@
-import requests
-import json
-import time
+import re
 import os
+import time
+
+import requests
 from prometheus_api_client import PrometheusConnect
 
 # Configuration
-PROM_URL = 'http://localhost:9090'
-OLLAMA_URL = 'http://localhost:11434/api/generate'
-MODEL = 'deepseek-coder:1.3b'
-METRIC_FILE = 'monitoring/metrics/ai_prediction.prom'
+PROM_URL = os.environ.get('PROM_URL', 'http://localhost:9090')
+OLLAMA_URL = os.environ.get('OLLAMA_URL', 'http://localhost:11434/api/generate')
+MODEL = os.environ.get('DEEPSEEK_MODEL', 'deepseek-coder:1.3b')
+METRIC_FILE = os.environ.get('METRIC_FILE', 'monitoring/metrics/ai_prediction.prom')
 
 pc = PrometheusConnect(url=PROM_URL, disable_ssl=True)
 
@@ -33,36 +34,50 @@ def ask_ai(metrics):
     """
     payload = {"model": MODEL, "prompt": prompt, "stream": False}
     try:
-        response = requests.post(OLLAMA_URL, json=payload).json().get('response', '')
-        # Parse simple lines
-        score = 50
-        text = "No prediction"
-        for line in response.split('\n'):
-            if 'SCORE:' in line:
-                try: score = int(''.join(filter(str.isdigit, line)))
-                except: pass
-            if 'TEXT:' in line:
-                text = line.replace('TEXT:', '').strip()
-        return score, text
-    except:
-        return 0, "Error connecting to AI"
+        response = requests.post(OLLAMA_URL, json=payload, timeout=55)
+        response.raise_for_status()
+        text = response.json().get('response', '')
+    except requests.RequestException as e:
+        print(f"AI request failed: {e}")
+        return None, None
+
+    score = None
+    insight = 'No prediction'
+    score_match = re.search(r'SCORE:\s*(-?\d+)', text)
+    if score_match:
+        score = max(0, min(100, int(score_match.group(1))))
+    text_match = re.search(r'TEXT:\s*(.+)', text)
+    if text_match:
+        insight = text_match.group(1).strip()
+    return score, insight
+
+def write_metric(score):
+    # Prometheus textfile format: atomic write, bare gauge (no labels, to
+    # avoid unbounded time-series churn from changing values).
+    os.makedirs(os.path.dirname(METRIC_FILE) or '.', exist_ok=True)
+    content = (
+        '# HELP ai_server_risk_level AI predicted risk level 0-100\n'
+        '# TYPE ai_server_risk_level gauge\n'
+        f'ai_server_risk_level {score}\n'
+    )
+    tmp = METRIC_FILE + '.tmp'
+    with open(tmp, 'w') as f:
+        f.write(content)
+    os.rename(tmp, METRIC_FILE)
 
 if __name__ == "__main__":
-    print("AI Monitor version 2 started...")
+    print("AI Monitor version 3 started...")
     while True:
         try:
             m = get_metrics()
-            score, text = ask_ai(m)
-            # Write Prometheus Format
-            # ai_server_risk{insight="..."} 45
-            content = f'# HELP ai_server_risk_level AI predicted risk level 0-100\n'
-            content += f'# TYPE ai_server_risk_level gauge\n'
-            content += f'ai_server_risk_level{{insight="{text}"}} {score}\n'
-            
-            with open(METRIC_FILE + '.tmp', 'w') as f:
-                f.write(content)
-            os.rename(METRIC_FILE + '.tmp', METRIC_FILE)
-            print(f"Updated AI Metric: Score {score}")
+            score, insight = ask_ai(m)
+            if score is None:
+                # Leave the previous metric in place rather than plotting a
+                # failure as "healthy".
+                print("Skipping metric update (AI unavailable)")
+            else:
+                write_metric(score)
+                print(f"Updated AI Metric: Score {score} — {insight}")
         except Exception as e:
             print(f"Loop error: {e}")
-        time.sleep(60) # Faster updates for testing
+        time.sleep(60)
