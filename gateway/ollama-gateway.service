@@ -1,0 +1,18 @@
+[Unit]
+Description=Ollama audit gateway
+After=network-online.target ollama.service
+Wants=ollama.service
+
+[Service]
+ExecStart=/usr/bin/python3 /home/wazaglo/Desktop/DeepSeek-In-House-AI-DevOps-AIOps-Guide/gateway/app.py
+User=wazaglo
+Group=wisdom
+Restart=always
+RestartSec=3
+Environment=GATEWAY_PORT=11435
+Environment=OLLAMA_UPSTREAM=http://127.0.0.1:11434
+# Audit log defaults to <repo>/monitoring/logs/gateway_audit.jsonl
+WorkingDirectory=/home/wazaglo/Desktop/DeepSeek-In-House-AI-DevOps-AIOps-Guide
+
+[Install]
+WantedBy=default.target

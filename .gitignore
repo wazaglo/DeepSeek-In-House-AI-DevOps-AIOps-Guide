@@ -6,3 +6,6 @@ __pycache__/
 node_modules/
 monitoring/metrics/*
 !monitoring/metrics/.gitkeep
+monitoring/logs/*
+!monitoring/logs/.gitkeep
+gateway/users.json

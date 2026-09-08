@@ -1,0 +1,41 @@
+// Alloy: tail the gateway audit log and ship it to Loki.
+
+local.file_match "gateway_audit" {
+  path_targets = [{
+    __path__ = "/var/log/gateway/*.jsonl",
+    job      = "ai-gateway-audit",
+  }]
+}
+
+loki.source.file "audit" {
+  targets    = local.file_match.gateway_audit.targets
+  forward_to = [loki.process.relabel.receiver]
+}
+
+// Parse the JSONL so user/model/status become Loki labels (kept low-cardinality).
+loki.process "relabel" {
+  stage.json {
+    expressions = {
+      user   = "user",
+      model  = "model",
+      path   = "path",
+      status = "status",
+      event  = "event",
+    }
+  }
+  stage.labels {
+    values = {
+      user   = "",
+      model  = "",
+      path   = "",
+      status = "",
+    }
+  }
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
